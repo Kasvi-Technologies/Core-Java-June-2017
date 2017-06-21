@@ -1,1 +1,1 @@
-# SpringPeople-Core-Java-May-2017
+# SpringPeople-Core-Java-June-2017
