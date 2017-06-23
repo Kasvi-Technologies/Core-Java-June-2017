@@ -1,0 +1,92 @@
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+	
+	<bean id="myDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" >
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+		<property name="url" value="jdbc:mysql://localhost:3306/sampledb"/>
+		<property name="username" value="root"/>
+		<property name="password" value="password"/>
+		
+	</bean>
+	
+	<bean id="mySessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource" ref="myDataSource"/>
+		<property name="useTransactionAwareDataSource" value="true" />
+		<property name="mappingResources">
+			<list>
+				  <value>com/samples/dao/hibernate/domain/product.hbm.xml</value> 				
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+        		<prop key="hibernate.jdbc.batch_size">5</prop>
+        		<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+        		<!-- <prop key="hibernate.hbm2ddl.auto">create</prop> -->
+		    </props>
+		</property>
+		
+	</bean>
+	
+	<bean id="myTxManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="mySessionFactory"/>
+	</bean>
+	
+	<!--  example 1 -->
+	<bean id="productDAO" class="com.samples.dao.hibernate.samples.ProductDAOImpl" >
+		<property name="sessionFactory" ref="mySessionFactory" />
+	</bean>
+	
+	<!--  example 2 Using HibernateDAOSupport  -->
+	<bean id="productDAO1" class="com.samples.dao.hibernate.samples.ProductDAOImpl1" >
+		<property name="sessionFactory" ref="mySessionFactory" />
+	</bean>
+	
+	<!--  example 3 Using HibernateCallBack  -->
+	<bean id="hibernateCallBackExample" class="com.samples.dao.hibernate.samples.HibernateCallBackExample" >
+		<property name="sessionFactory" ref="mySessionFactory" />
+	</bean>
+	
+	<!--  example 4 Implementing DAOs based on plain Hibernate 3 API. It requires Transactions.  -->
+	<bean id="productDAOImpl2" class="com.samples.dao.hibernate.samples.ProductDAOImpl2" >
+		<property name="sessionFactory" ref="mySessionFactory" />
+	</bean>
+	
+	<!-- Declarative Transaction using AOP -->
+	<bean id="productDAOImpl2Proxy" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<property name="transactionManager" ref="myTxManager" />
+		<property name="target" ref="productDAOImpl2" />
+		<property name="transactionAttributes">
+			<props>
+				<prop key="*">PROPAGATION_REQUIRED</prop>
+			</props>
+		</property>
+	</bean>
+		
+	<!--  hibernate complete example -->
+	<bean id="productManager" class="com.samples.dao.hibernate.samples.ProductManagerBean" >
+		<property name="sessionFactory" ref="mySessionFactory" />
+	</bean>
+		
+	
+	<!--  Hibernate Real time implementation Using services and DAO's -->
+	
+	<bean id="realTimeProductDAO" class="com.samples.dao.hibernate.realtimesamples.ProductDAOImpl" >
+		<property name="sessionFactory" ref="mySessionFactory" />
+	</bean>
+	
+	<bean id="productService" class="com.samples.dao.hibernate.realtimesamples.ProductServiceImpl" >
+		<property name="productDAO" ref="realTimeProductDAO" />
+	</bean>
+	
+	<bean id="productServiceProxy" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<property name="transactionManager" ref="myTxManager" />
+		<property name="target" ref="productService" />
+		<property name="transactionAttributes">
+			<props>
+				<prop key="*">PROPAGATION_REQUIRED</prop>
+			</props>
+		</property>
+	</bean>
+	
+	
+</beans>
